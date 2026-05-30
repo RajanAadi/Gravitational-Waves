@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name="gw_analytics",
     version="0.1.0",
-    author="Astronomical Data Researcher",
+    author="Adhyatma Rajan",
     description="A statistical framework for population analysis of gravitational wave events.",
     packages=find_packages(),
     python_requires=">=3.8",

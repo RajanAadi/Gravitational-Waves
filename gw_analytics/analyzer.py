@@ -21,7 +21,7 @@ class GWCatalogAnalyzer:
         Queries the remote GWOSC catalog registry, fetches every single documented 
         property for all events, and flattens the records into a clean Pandas DataFrame.
         """
-        print(f"🤖 Connecting to GWOSC API... Extracting full '{self.catalog_name}' parameter space.")
+        print(f"Connecting to GWOSC API... Extracting full '{self.catalog_name}' parameter space.")
         try:
             # Fetching without specifying a column matrix forces GWpy to pull ALL columns.
             table = EventTable.fetch_open_data(self.catalog_name)
@@ -31,10 +31,10 @@ class GWCatalogAnalyzer:
             if 'name' in self.df.columns:
                 self.df.set_index('name', inplace=True)
                 
-            print(f"✅ Success: Extracted {self.df.shape[1]} unique properties across {self.df.shape[0]} documented events.")
+            print(f"Success: Extracted {self.df.shape[1]} unique properties across {self.df.shape[0]} documented events.")
             return self.df
         except Exception as e:
-            print(f"❌ Failed to extract catalog data: {e}")
+            print(f"Failed to extract catalog data: {e}")
             raise
 
     def generate_statistical_profile(self) -> pd.DataFrame:
@@ -48,7 +48,7 @@ class GWCatalogAnalyzer:
         # Isolate numerical measurements to avoid statistical profiling on metadata strings
         numeric_df = self.df.select_dtypes(include=[np.number])
         
-        print("📊 Calculating population distribution properties...")
+        print("Calculating population distribution properties...")
         # Transpose (.T) the description block for cleaner reading down the rows
         return numeric_df.describe().T
 
