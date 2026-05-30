@@ -1,0 +1,4 @@
+[console_scripts]
+gwpy-plot = gwpy.cli.gwpy_plot:main
+gwpy-rds = gwpy.tools.rds:main
+gwpy-tconvert = gwpy.time.__main__:main

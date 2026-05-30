@@ -1,0 +1,9 @@
+README.md
+setup.py
+gw_analytics/__init__.py
+gw_analytics/analyzer.py
+gw_analytics.egg-info/PKG-INFO
+gw_analytics.egg-info/SOURCES.txt
+gw_analytics.egg-info/dependency_links.txt
+gw_analytics.egg-info/requires.txt
+gw_analytics.egg-info/top_level.txt

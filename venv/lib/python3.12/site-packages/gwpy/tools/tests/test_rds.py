@@ -1,0 +1,41 @@
+# Copyright (c) 2024-2025 Cardiff University
+#
+# This file is part of GWpy.
+#
+# GWpy is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# GWpy is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GWpy.  If not, see <http://www.gnu.org/licenses/>.
+
+"""Tests for :mod:`gwpy.tools.rds`."""
+
+from ...testing.errors import pytest_skip_network_error
+from ...timeseries import TimeSeries
+from ..rds import main as gwpy_rds
+
+
+@pytest_skip_network_error
+def test_rds(tmp_path):
+    """Test the ``gwpy-rds`` tool."""
+    ifo = "H1"
+    outfile = tmp_path / "test.h5"
+    gwpy_rds([
+        "1126259460",
+        "1126259464",
+        ifo,
+        "-o", str(outfile),
+        "-O", "format=hdf5",
+        "-O", "sample_rate=4096",
+        "-O", "version=4",
+    ])
+    data = TimeSeries.read(outfile, ifo)
+    assert data.name == "H1:Strain"
+    assert data.span == (1126259460, 1126259464)

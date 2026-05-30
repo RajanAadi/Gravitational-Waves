@@ -1,0 +1,2 @@
+[console_scripts]
+dqsegdb2 = dqsegdb2.cli:cli

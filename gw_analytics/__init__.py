@@ -1,1 +1,1 @@
-
+from .analyzer import GWCatalogAnalyzer
