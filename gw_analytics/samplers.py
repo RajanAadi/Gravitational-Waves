@@ -1,55 +1,65 @@
-import numpy as np
 import pymc as pm
+import pytensor.tensor as pt
+import numpy as np
 
 class GWNUTSSampler:
-    def __init__(self, time_array, observed_strain, noise_sigma):
-        """
-        NUTS Parameter Estimation suite aligned with actual GWOSC summary columns.
-        Optimizes for Chirp Mass and Luminosity Distance.
-        """
-        self.t = np.array(time_array, dtype=np.float64)
-        self.data = np.array(observed_strain, dtype=np.float64)
-        self.sigma = float(noise_sigma)
-        self.idata = None
-
-    def build_and_sample_model(self, draws=2000, tune=1000, chains=2):
-        """
-        Compiles and samples using parameters present in the GWOSC EventTable.
-        """
-        print("Compiling real-parameter GR graph into PyMC...")
-        
-        with pm.Model() as self.model:
-            # 1. Priors matching your column boundaries
-            # Chirp Mass in Solar Masses
+    def build_and_sample_model(self, draws=1500, tune=1000, chains=2):
+        with pm.Model() as model:
+            
+            # 1. Priors
             chirp_mass = pm.Uniform("chirp_mass", lower=10.0, upper=50.0)
+            lum_dist = pm.Uniform("luminosity_distance", lower=100.0, upper=2000.0)
+            tc = pm.Uniform("tc", lower=0.4, upper=0.6)
             
-            # Luminosity Distance in Megaparsecs (Mpc)
-            # Let's say our prior search window is between 100 Mpc and 2000 Mpc
-            luminosity_distance = pm.Uniform("luminosity_distance", lower=100.0, upper=2000.0)
-
-            # 2. Waveform Math Graph
-            # Chirp mass governs how fast the frequency ramps up over time
-            frequency = 30.0 + 5.0 * (chirp_mass**2) * (self.t**1.5)
-            phase = 2.0 * np.pi * frequency * self.t
+            # ---------------------------------------------------------
+            # 2. Waveform Math Graph (Adapted for Real Chirp Dynamics)
+            # ---------------------------------------------------------
             
-            # Amplitude scales inversely with Luminosity Distance (1 / d_L)
-            # We use a baseline scaling constant (e.g., 5e-19) to match detector scales
-            amplitude = 5e-19 / luminosity_distance
-            expected_strain = amplitude * pm.math.sin(phase)
-
-            # 3. Likelihood Node linking to your observed data array
-            pm.Normal("likelihood", mu=expected_strain, sigma=self.sigma, observed=self.data)
-
-            # 4. Execute NUTS
-            print(f"Launching NUTS Sampler over {chains} parallel chains...")
+            t_shifted = self.time_array - tc
+            
+            # FIX 1: Create a smooth one-sided mask. Real waves end at the merger.
+            # We use an inverse logit (sigmoid) function to smoothly fade the wave to zero 
+            # after t_c. This keeps the math differentiable so NUTS' gradients don't crash.
+            is_before_merger = pm.math.invlogit(-50.0 * t_shifted) 
+            
+            # Use absolute time for the math, add a tiny buffer to prevent division by zero
+            tau = pm.math.abs(t_shifted) + 0.001 
+            
+            # FIX 2: True chirps INCREASE frequency as time gets closer to zero.
+            # We invert the tau relationship so the frequency spikes at the merger.
+            frequency = 30.0 + 5.0 * (chirp_mass**2) * (1.0 / (tau**0.5))
+            
+            phase = 2.0 * np.pi * frequency * t_shifted
+            
+            # FIX 3: Increase the baseline amplitude so it doesn't hit the 100 Mpc wall
+            # Changed from 5e-19 to 5e-18 to accommodate loud signals like GW150914
+            amplitude = 5e-18 / lum_dist
+            
+            # Apply the mask so the wave mathematically cuts off after the merger
+            raw_expected_strain = amplitude * pm.math.sin(phase) * is_before_merger
+            
+            # ---------------------------------------------------------
+            # 3. Scale and Link to Likelihood
+            # ---------------------------------------------------------
+            
+            # Multiply by 1e21 to match the pre-scaled observed data array!
+            scaled_template = raw_expected_strain * self.scale_factor
+            
+            # Likelihood Node linking to your scaled data and fixed sigma (1.0)
+            pm.Normal(
+                "likelihood", 
+                mu=scaled_template, 
+                sigma=self.noise_sigma, 
+                observed=self.observed_strain
+            )
+            
+            # 4. Run NUTS
             self.idata = pm.sample(
                 draws=draws, 
                 tune=tune, 
                 chains=chains, 
                 init="jitter+adapt_diag",
                 target_accept=0.90,
-                return_inferencedata=True
+                progressbar=True
             )
-            
-        print("Sampling complete.")
         return self.idata
