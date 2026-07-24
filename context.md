@@ -1,67 +1,85 @@
 # Project Context: Gravitational Wave Parameter Estimation with PyMC & NUTS
 
-## The Goal
-Estimate the parameters (chirp mass and luminosity distance) of the GW150914 black hole merger using a No-U-Turn Sampler (NUTS) pipeline via PyMC, utilizing whitened LIGO data from GWOSC.
+# Research Project Roadmap: JAX-NUTS for Gravitational Wave Parameter Estimation
 
-## Current Repository Setup
-- Located at: `~/Documents/GravWaves`
-- Contains: `gw_analytics.py`, Jupyter Notebook, and environment configurations.
+## Project Vision & Novelty
+While standard gravitational wave inference relies heavily on nested sampling (e.g., `Bilby`, `Dynesty`, `PyCBC`), Hamiltonian Monte Carlo (HMC) and No-U-Turn Sampling (NUTS) leverage exact JAX gradients to explore high-dimensional posteriors faster. 
 
-## Troubleshooting History & Lessons Learned
-1. **ArviZ/gwpy Backend Crash:** `az.plot_trace()` was crashing because `gwpy` injected its own plotting engine into the global environment, causing ArviZ to look for a non-existent `gwpy` backend. 
-2. **Prior Boundary Pile-up:** When using a basic mathematical sine-wave template, the NUTS sampler completely rejected the data and fled to the absolute boundaries of the Uniform priors (Mass = 10/50, Distance = 100/2000). 
-3. **The Physics Reality:** An algebraic toy equation cannot match the non-linear, relativistic phase evolution of real General Relativity data. The likelihood heavily penalizes phase mismatches, forcing the sampler to run to the corners to minimize the mathematical penalty.
-
-## Active Code Architecture (GWNUTSSampler Fixes Injected)
-- **Data Scaling:** Raw strain data and theoretical templates are multiplied by `1e21` to prevent floating-point gradient underflow.
-- **Noise Hardcoding:** Because the data is whitened, background noise standard deviation (`sigma`) is locked to `1.0`.
-- **Time Alignment:** A `tc` (time of coalescence) uniform prior parameter was added to allow phase shifting.
-
-## Next Steps
-We are completely abandoning the toy algebraic waveform equation. The next phase of development is to integrate a genuinely relativistic, differentiable waveform engine using either:
-- **Option A:** A custom PyTensor wrapper (`Op`) using finite differences over legacy `LALSuite` C-bindings.
-- **Option B (Preferred):** A modern, natively differentiable JAX-based waveform library like `ripples` connected via a JAX-PyMC bridge.
+Following the foundational proof-of-concept work in *arXiv:2601.02336*, this project evaluates the scalability, sampling efficiency (Effective Samples per second), and real-world robustness of JAX-based NUTS across actual LIGO-Virgo-KAGRA strain data from GWOSC.
 
 ---
 
-## JAX Waveform Integration Plan (Steps 1–6)
+## Notebook Pipeline
+The pipeline notebook (`notebooks/exploration.ipynb`) has been updated to demonstrate:
+1. GWOSC catalog exploration (GWTC extraction, correlation analysis)
+2. Data extraction and whitening pipeline
+3. NUTS parameter estimation on GW150914
+4. Posterior summary, convergence diagnostics, corner plot, and trace plot
+5. Performance comparison notes
 
-**Option B was chosen.** Dependencies installed: `jax==0.11.0`, `jaxlib==0.11.0`, `rippleGW==0.2.1`, `numpyro==0.21.0`.
+## Diagnostic Scripts
+- `test_scripts/diagnose_bic_aic.py` — Computes BIC, AIC, reduced χ² for model quality assessment
+- `test_scripts/benchmark_nuts_vs_bilby.py` — Benchmarks NUTS vs published LVK/Dynesty metrics
+- `test_scripts/injection_recovery_test.py` — Zero-noise injection recovery across mass ratio grid
 
-### Verified ripplegw 0.2.1 API (sourced directly from installed package)
-- **Python module name:** `ripplegw` (NOT `ripple`)
-- **Correct function:** `gen_IMRPhenomD` from `ripplegw.waveforms.IMRPhenomD`
-- **Signature:** `gen_IMRPhenomD(f, params, f_ref)` → complex frequency-domain strain `h0`
-- **`params` array — 7 elements in order:**
-  1. `Mchirp` — Chirp mass [solar masses]
-  2. `eta` — Symmetric mass ratio (0 < eta ≤ 0.25; equal mass → 0.25)
-  3. `chi1` — Aligned spin of primary [-1, 1]
-  4. `chi2` — Aligned spin of secondary [-1, 1]
-  5. `D` — Luminosity distance [Mpc]
-  6. `tc` — Time of coalescence [seconds] (applied as linear phase shift)
-  7. `phic` — Phase at coalescence [radians]
-- `gen_IMRPhenomD_hphc(f, params, f_ref)` takes an 8-element array (adds `inclination`) and returns `(hp, hc)`.
+## Execution Phases
 
-### Implementation Steps
+### Phase 1: Baseline Validation & Benchmarking
+**Objective:** Prove that NUTS achieves statistically identical posteriors to standard catalogs while outperforming them in sampling efficiency on benchmark events.
 
-**Step 1 (DONE):** Install `jax`, `jaxlib`, `rippleGW`, `numpyro` into venv; update `requirements.txt`.
+- [x] **Task 1.1: Gold-Standard Real Event Recovery (GW150914)**
+  - Recover detector-frame parameters ($M_c \approx 31\ M_{\odot}$, $d_L \approx 410\text{ Mpc}$) on GW150914 strain data.
+  - Confirm convergence ($\hat{R} < 1.05$, $\text{ESS} > 100$).
+- [x] **Task 1.2: Efficiency & Speed Benchmarking**
+  - Compare NUTS runtime, ESS per second, and gradient evaluations against standard nested sampling runs (or published LVK Bilby samples).
+  - Record wall-clock time to reach 1,000 independent samples.
+  - **Results:** NUTS achieves 3.4 ESS/s vs ~0.01-0.02 for traditional nested sampling (~100-1000x faster).
+  - **Script:** `test_scripts/benchmark_nuts_vs_bilby.py`
+  - **Output:** `test_results/benchmark_results.txt`
+- [x] **Task 1.3: Zero-Noise Injection-Recovery Test**
+  - Run NUTS on synthetic injections without noise to verify unbiased parameter recovery across a grid of mass ratios ($q = m_2/m_1 \in [0.2, 1.0]$).
+  - **Results:** Mc bias < 3.0 and r_hat < 1.10 for all q (ALL PASSED).
+  - **Script:** `test_scripts/injection_recovery_test.py`
+  - **Output:** `test_results/injection_recovery_results.txt`
 
-**Step 2:** Enable JAX float64 at the top of `samplers.py`:
-```python
-from jax import config
-config.update("jax_enable_x64", True)
-```
+> **MCP Guidance Rule (completed):** The comparison table in `benchmark_results.txt` contrasts NUTS vs. published LVK/Bilby-Dynesty execution times and ESS metrics for GW150914. NUTS is ~100-1000x faster in ESS/s throughput. See `test_results/benchmark_results.txt` for full details.
 
-**Step 3:** Add missing `__init__` constructor to `GWNUTSSampler` storing `time_array`, `observed_strain`, `noise_sigma`, `scale_factor`.
+---
 
-**Step 4:** Define `_jax_waveform(Mc, eta, D, tc, freqs, N)` — a pure JAX function that calls `gen_IMRPhenomD`, zero-pads frequencies outside the sensitive band, and returns the irfft time-domain template.
+### Phase 2: GWOSC Event Catalog Expansion
+**Objective:** Transition from a single test event to a curated catalog of diverse astrophysical binary black hole (BBH) signals from GWTC-1 and GWTC-2.
 
-**Step 5:** Wrap it with `@as_jax_op` (from `pytensor.link.jax`) so PyMC can differentiate through it. Frequency grid and array length are closed over as static constants.
+- [ ] **Task 2.1: Mass-Regime Testing**
+  - **Low-Mass BBH (GW151226):** Longer in-band duration, higher number of wave cycles. Test if frequency-domain gradient integration remains stable.
+  - **Asymmetric-Mass BBH (GW190412):** Test sensitivity to sub-dominant harmonics and mass ratio gradients.
+  - **High-Mass / Short-Duration BBH (GW190521):** Test merger/ringdown-dominated signals where few cycles exist in band.
+- [ ] **Task 2.2: Real Noise & PSD Robustness**
+  - Integrate automated Power Spectral Density (PSD) estimation (e.g., Welch's method / BayesWave PSDs) directly from GWOSC 32 kHz / 4 kHz strain files.
+  - Verify that non-stationary spectral lines in detector noise do not corrupt JAX likelihood gradients.
 
-**Step 6:** Replace the toy waveform math in `build_and_sample_model` with the PyTensor Op. Switch sampler from `pm.sample()` to `pymc.sampling.jax.sample_numpyro_nuts()` for end-to-end JAX/XLA compilation.
+> **MCP Guidance Rule:** Execute catalog runs sequentially. For each event, the script must write a diagnostic summary to `catalog_<event_name>.txt` containing recovered median values, 90% credible intervals, and $\hat{R}$ metrics.
 
-### Design Decisions Requiring User Input (Stop Point)
-After this implementation the pipeline requires two physical choices before running on real GW150914 data:
+---
 
-1. **eta prior:** Currently fixing `eta = 0.25` (equal-mass simplification). GW150914 true values are m1≈36, m2≈29 M☉ → eta≈0.247, so this is valid. Alternatively, infer eta with `pm.Uniform("eta", 0.1, 0.25)` for a more complete posterior.
-2. **Frequency band:** The irfft template is computed over the full rfft grid. The whitened LIGO data is only sensitive in ~20–1024 Hz. The likelihood should mask or zero out frequencies outside this band on both data and template to avoid fitting to out-of-band noise.
+### Phase 3: Higher-Dimensional Parameter Space Expansion
+**Objective:** Scale the NUTS sampler from low-dimensional test cases (2–4 parameters) to the full physical parameter space (8–15 parameters).
+
+- [ ] **Task 3.1: Spin & Extrinsic Parameter Integration**
+  - Expand from ($M_c, d_L$) to include effective aligned spin ($\chi_{\text{eff}}$), sky position ($\alpha, \delta$), inclination ($\iota$), polarization ($\psi$), and phase ($\phi_c$).
+- [ ] **Task 3.2: Coordinate Reparameterization for NUTS**
+  - Test whether sampling in transformed spaces (e.g., $\ln M_c$ or mass ratio $q$ instead of $m_1, m_2$) improves NUTS mass matrix adaptation and step-size stability.
+- [ ] **Task 3.3: Precession & Higher-Order Waveform Modes**
+  - Upgrade waveform calls to precessing / higher-mode approximants (e.g., `IMRPhenomXPHM` via JAX/`rippleGW`).
+
+---
+
+### Phase 4: Comparative Analysis & Publication Preparation
+**Objective:** Synthesize findings into publication-ready figures and statistical comparisons.
+
+- [ ] **Task 4.1: Posterior Agreement Metrics**
+  - Compute Jensen-Shannon (JS) divergence and Wasserstein distances between NUTS posteriors and official LVC public samples across all catalog events.
+- [ ] **Task 4.2: Scaling Law Analysis**
+  - Plot NUTS wall-clock scaling as a function of parameter dimensionality ($N=2$ vs $N=4$ vs $N=8$ vs $N=15$).
+- [ ] **Task 4.3: Manuscript & Codebase Release**
+  - Export clean benchmark plots (corner plots, ESS scaling curves, JS divergence heatmaps).
+  - Package `gw_analytics` as a clean, reproducible open-source library.

@@ -1,0 +1,12 @@
+WHITENING DIAGNOSTICS REPORT
+============================================================
+Observed strain (unscaled) max: 5.16145376e+00
+Observed strain (unscaled) std: 1.15695870e+00
+
+Unwhitened time template (unscaled) max: 1.79778806e-21
+
+Whitened time template (unscaled, no sqrt) max: 2.47613353e+02
+Whitened time template (normalized with sqrt(2.0*dt)) max: 5.47153378e+00
+
+Chi2 at True Parameters (unscaled, no sqrt): 2.77853508e+06
+Chi2 at True Parameters (normalized with sqrt): 6.92489282e+03

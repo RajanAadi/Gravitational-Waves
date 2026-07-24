@@ -1,0 +1,9 @@
+COMPLEX CROSS-CORRELATION ANALYSIS REPORT
+============================================================
+Max correlation: 3.6887e+05
+Optimal shift index: -1927 samples
+Optimal shift time: -0.470459 s
+Optimal tc (in window): 0.529541 s
+Optimal phic: -0.7854 rad
+Analytical Best-fit D: 1232.34 Mpc
+Chi2 at best-fit: 5186.3572

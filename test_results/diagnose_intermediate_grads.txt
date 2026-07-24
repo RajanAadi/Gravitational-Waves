@@ -1,0 +1,13 @@
+Evaluating step-by-step gradients with respect to Mc...
+Mc_val: 30.0
+m1, m2, chi1, chi2: [34.46095065 34.46095065  0.          0.        ]
+grad_intrinsic (d(m1,m2)/dMc): [nan nan nan nan]
+grad_coeffs has NaN: True
+Transition freqs: (Array(53.0231751, dtype=float64), Array(129.74007356, dtype=float64), Array(41.2402473, dtype=float64), Array(229.88235288, dtype=float64), Array(259.48014711, dtype=float64), Array(40.04877758, dtype=float64))
+grad_trans_freqs (d(f_trans)/dMc): (Array(nan, dtype=float64, weak_type=True), Array(nan, dtype=float64, weak_type=True), Array(nan, dtype=float64, weak_type=True), Array(nan, dtype=float64, weak_type=True), Array(nan, dtype=float64, weak_type=True), Array(nan, dtype=float64, weak_type=True))
+t0: 253.15273248511232
+grad_t0 (dt0/dMc): nan
+grad_Psi has NaN: True
+grad_Psi_ref (dPsi_ref/dMc): nan
+grad_Psi_total has NaN: True
+First NaN in grad_Psi_total is at index: 0 freq: 20.0

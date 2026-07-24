@@ -1,0 +1,32 @@
+
+  Running q=0.2 (eta=0.1389)... Mc_rec=31.51, bias=+1.51, r_hat=1.00
+
+  Running q=0.4 (eta=0.2041)... Mc_rec=31.45, bias=+1.45, r_hat=1.00
+
+  Running q=0.6 (eta=0.2344)... Mc_rec=31.53, bias=+1.53, r_hat=1.00
+
+  Running q=0.8 (eta=0.2469)... Mc_rec=31.49, bias=+1.49, r_hat=1.00
+
+  Running q=1.0 (eta=0.2500)... Mc_rec=31.54, bias=+1.54, r_hat=1.00
+
+
+==========================================================================================
+ZERO-NOISE INJECTION-RECOVERY TEST — Mass Ratio Grid
+==========================================================================================
+Fixed injected values: Mc=30.0, D=870.0, tc=0.5295, phic=0.0
+Model: fixed eta=0.25 (equal-mass assumption)
+Sampler: PyMC-NUTS, 2000 draws + 1500 tune, 2 chains
+
+q        eta      Mc_rec     Mc_sd    Mc_bias    r_hat    ESS      D_rec      D_bias     time_s  
+------------------------------------------------------------------------------------------
+0.20     0.1389   31.51      2.02     +1.51      1.00     3923     901.0      +31.0      36.0    
+0.40     0.2041   31.45      2.01     +1.45      1.00     4752     898.0      +28.0      35.9    
+0.60     0.2344   31.53      2.00     +1.53      1.00     4110     896.0      +26.0      37.5    
+0.80     0.2469   31.49      2.00     +1.49      1.00     5519     903.0      +33.0      41.7    
+1.00     0.2500   31.54      2.03     +1.54      1.00     3988     897.0      +27.0      49.4    
+------------------------------------------------------------------------------------------
+
+  Criteria: |Mc_bias| < 3.0 AND r_hat < 1.10 for all q
+  OVERALL: ALL PASSED
+
+Results saved to test_results/injection_recovery_results.txt

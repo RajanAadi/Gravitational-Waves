@@ -32,40 +32,53 @@ F_UPPER = 1024.0
 # ============================================================
 # Step 4: Pure JAX waveform function
 # ============================================================
-def _make_jax_waveform(freqs_jax: jnp.ndarray, N: int, dt: float, scale_factor: float):
+def _make_jax_waveform(freqs_jax: jnp.ndarray, N: int, dt: float, scale_factor: float, noise_asd_jax: jnp.ndarray = None):
     """
-    Returns a closure `jax_waveform(Mc, D, tc)` that is a pure JAX
-    function. Closing over the static frequency grid and array length
-    avoids retracing the JAX JIT on every call.
-
-    The function:
-      1. Builds the 7-element ripple params vector for a face-on,
-         equal-mass, non-spinning binary (eta=0.25, chi1=chi2=0, phic=0).
-      2. Calls gen_IMRPhenomD to get the complex frequency-domain strain.
-      3. Zeros out frequencies outside [F_LOWER, F_UPPER] so the
-         likelihood only sees in-band physics.
-      4. Converts to a real time-domain template via irfft.
-      5. Applies the scale_factor to match the pre-scaled observed data.
+    Returns a closure `jax_waveform(Mc, D, tc, phic)` that avoids low-frequency 
+    singularities by only passing valid, sorted frequencies to the engine,
+    then padding the outputs dynamically. Optionally performs frequency-domain
+    whitening if noise_asd_jax is provided.
     """
-    # In-band boolean mask — computed once at construction time.
+    # Convert to numpy temporarily to calculate the static slice index on the CPU
+    freqs_np = np.array(freqs_jax)
+    idx_start = int(np.searchsorted(freqs_np, F_LOWER))
+    
+    # Create a strictly monotonic, safe frequency array starting exactly at F_LOWER
+    freqs_valid = jnp.array(freqs_np[idx_start:])
+    
+    # Full-sized in-band mask for the final output array
     in_band = (freqs_jax >= F_LOWER) & (freqs_jax <= F_UPPER)
 
     @jax.jit
-    def jax_waveform(Mc, D, tc):
+    def jax_waveform(Mc, D, tc, phic):
         # ripple params: [Mchirp, eta, chi1, chi2, D_mpc, tc, phic]
-        # Fixing eta=0.25 (equal-mass), non-spinning, phic=0.
-        params = jnp.array([Mc, 0.25, 0.0, 0.0, D, tc, 0.0])
+        # Use 0.25 - 1e-12 instead of exactly 0.25 to prevent division-by-zero inside
+        # ripplegw's mass conversion function (Mc_eta_to_ms) during backpropagation.
+        params = jnp.array([Mc, 0.25 - 1e-12, 0.0, 0.0, D, tc, phic])
 
-        # Generate complex frequency-domain strain h(f)
-        h_freq = gen_IMRPhenomD(freqs_jax, params, F_LOWER)
+        # 1. Compute the waveform ONLY on the physically safe, sorted frequency grid
+        h_freq_valid = gen_IMRPhenomD(freqs_valid, params, F_LOWER)
 
-        # Zero out contributions outside the sensitive band
-        h_freq_masked = jnp.where(in_band, h_freq, 0.0 + 0.0j)
+        # 2. Differentiably pad the front with complex zeros for the 0 to F_LOWER bins
+        padding = jnp.zeros(idx_start, dtype=jnp.complex128)
+        h_freq_full = jnp.concatenate([padding, h_freq_valid])
 
-        # irfft: complex freq-domain → real time-domain, length N
+        # 3. Whiten the template in the frequency domain if ASD is provided
+        if noise_asd_jax is not None:
+            # Prevent division by zero.
+            safe_asd = jnp.where(noise_asd_jax > 1e-30, noise_asd_jax, 1.0)
+            h_freq_whitened = h_freq_full / safe_asd
+            h_freq_masked = jnp.where(in_band, h_freq_whitened, 0.0 + 0.0j)
+        else:
+            h_freq_masked = jnp.where(in_band, h_freq_full, 0.0 + 0.0j)
+
+        # 4. Transform to real time-domain strain
         h_time = jnp.fft.irfft(h_freq_masked, n=N) / dt
 
-        # Apply scale factor to match the 1e21-scaled observed data
+        # Apply discrete-to-continuous normalization factor for whitening
+        if noise_asd_jax is not None:
+            h_time = h_time * jnp.sqrt(2.0 * dt)
+
         return h_time * scale_factor
 
     return jax_waveform
@@ -74,7 +87,7 @@ def _make_jax_waveform(freqs_jax: jnp.ndarray, N: int, dt: float, scale_factor: 
 # ============================================================
 # Step 5: PyTensor Op via @as_jax_op
 # ============================================================
-def _make_pytensor_op(time_array: np.ndarray, scale_factor: float):
+def _make_pytensor_op(time_array: np.ndarray, scale_factor: float, asd: np.ndarray = None):
     """
     Builds and returns a PyTensor-compatible waveform Op backed by JAX.
 
@@ -87,20 +100,22 @@ def _make_pytensor_op(time_array: np.ndarray, scale_factor: float):
         time_array:   1D numpy array of time samples from the data.
         scale_factor: Multiplicative factor applied to the template
                       (matching the 1e21 scaling applied to observed data).
+        asd:          Optional 1D numpy array containing the noise ASD.
     Returns:
-        A callable PyTensor Op accepting scalar (Mc, D, tc) PyTensor vars.
+        A callable PyTensor Op accepting scalar (Mc, D, tc, phic) PyTensor vars.
     """
     N = len(time_array)
     dt = float(time_array[1] - time_array[0])
     freqs_np = np.fft.rfftfreq(N, d=dt)
     freqs_jax = jnp.array(freqs_np)
+    asd_jax = jnp.array(asd) if asd is not None else None
 
     # Build the pure JAX waveform closure
-    _jax_fn = _make_jax_waveform(freqs_jax, N, dt, scale_factor)
+    _jax_fn = _make_jax_waveform(freqs_jax, N, dt, scale_factor, asd_jax)
 
     @wrap_jax
-    def waveform_op(Mc, D, tc):
-        return _jax_fn(Mc, D, tc)
+    def waveform_op(Mc, D, tc, phic):
+        return _jax_fn(Mc, D, tc, phic)
 
     return waveform_op
 
@@ -117,6 +132,7 @@ class GWNUTSSampler:
         observed_strain: np.ndarray,
         noise_sigma: float = 1.0,
         scale_factor: float = 1e21,
+        asd: np.ndarray = None,
     ):
         """
         Parameters
@@ -129,15 +145,17 @@ class GWNUTSSampler:
         scale_factor   : Applied to both data (externally) and template
                          (internally) to prevent float64 gradient underflow.
                          Must match the factor applied to observed_strain.
+        asd            : Optional 1D array containing the noise ASD.
         """
         self.time_array = np.asarray(time_array, dtype=np.float64)
         self.observed_strain = np.asarray(observed_strain, dtype=np.float64)
         self.noise_sigma = float(noise_sigma)
         self.scale_factor = float(scale_factor)
+        self.asd = np.asarray(asd, dtype=np.float64) if asd is not None else None
         self.idata = None
 
     # Step 6: Rebuilt model using the JAX-differentiable waveform Op.
-    def build_and_sample_model(self, draws: int = 1500, tune: int = 1000, chains: int = 2):
+    def build_and_sample_model(self, draws: int = 3000, tune: int = 2000, chains: int = 2):
         """
         Construct the PyMC model with an IMRPhenomD waveform template
         and sample using NumPyro's NUTS (JAX-compiled, gradient-aware).
@@ -147,28 +165,28 @@ class GWNUTSSampler:
         idata : ArviZ InferenceData object with posterior samples.
         """
         # Build the static PyTensor Op once (frequency grid computed here)
-        waveform_op = _make_pytensor_op(self.time_array, self.scale_factor)
+        waveform_op = _make_pytensor_op(self.time_array, self.scale_factor, self.asd)
 
         with pm.Model() as model:
             # ----------------------------------------------------------
-            # Priors
+            # Priors (Targeted, physical bounds)
             # ----------------------------------------------------------
-            # Chirp mass: GW150914 true value ~28.3 M☉
-            chirp_mass = pm.Uniform("chirp_mass", lower=10.0, upper=50.0)
+            # Chirp mass: GW150914 detector-frame ~31 M☉
+            chirp_mass = pm.Uniform("chirp_mass", lower=28.0, upper=35.0)
 
-            # Luminosity distance: GW150914 true value ~410 Mpc
-            lum_dist = pm.Uniform("luminosity_distance", lower=100.0, upper=2000.0)
+            # Luminosity distance: GW150914 true effective H1 distance ~870 Mpc
+            lum_dist = pm.Uniform("luminosity_distance", lower=600.0, upper=1200.0)
 
-            # Time of coalescence: kept narrow around the known merger time.
-            # The whitened/cropped data is zero-referenced so tc ~ 0.5 s
-            # puts the merger near the centre of the 1-second window.
-            tc = pm.Uniform("tc", lower=0.4, upper=0.6)
+            # Time of coalescence: narrow window around the merger peak (~0.528s).
+            tc = pm.Uniform("tc", lower=0.525, upper=0.532)
+
+            # Phase of coalescence: full periodic range (-π, π).
+            phic = pm.Uniform("phic", lower=-np.pi, upper=np.pi)
 
             # ----------------------------------------------------------
             # Step 6: JAX-differentiable relativistic waveform template
-            # Replaces the toy algebraic sine wave entirely.
             # ----------------------------------------------------------
-            scaled_template = waveform_op(chirp_mass, lum_dist, tc)
+            scaled_template = waveform_op(chirp_mass, lum_dist, tc, phic)
 
             # ----------------------------------------------------------
             # Likelihood: whitened strain ~ N(template, sigma=1)
@@ -182,15 +200,23 @@ class GWNUTSSampler:
 
             # ----------------------------------------------------------
             # Step 6: NumPyro NUTS — compiles the full model to JAX/XLA.
-            # This replaces pm.sample() and uses automatic differentiation
-            # through the ripplegw waveform for gradient computation.
+            # We initialize the chains inside the physical well (initvals)
+            # to guide NUTS directly to the correct parameter mode.
             # ----------------------------------------------------------
+            initvals = {
+                "chirp_mass": 31.5,
+                "luminosity_distance": 900.0,
+                "tc": 0.5285,
+                "phic": 0.0,
+            }
+
             self.idata = pm_jax.sample_numpyro_nuts(
                 draws=draws,
                 tune=tune,
                 chains=chains,
-                target_accept=0.90,
+                target_accept=0.95,
                 progressbar=True,
+                initvals=initvals,
             )
 
         return self.idata

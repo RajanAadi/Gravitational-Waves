@@ -1,0 +1,15 @@
+Fetching GPS metadata...
+Downloading and whitening strain data...
+Computing noise PSD and ASD...
+Initializing GWNUTSSampler...
+
+--- Compiled PyMC Log-Likelihood Evaluation (with phic) ---
+Noise-only (D~1500, Mc=28.3, tc=0.53, phic=0): LogL = -6397.0960, Chi2 = 5266.25
+Runaway    (D~1500, Mc=25.6, tc=0.49, phic=0): LogL = nan, Chi2 = nan
+Physical   (D=871, Mc=28.3, tc=0.5295, phic=-0.785): LogL = -6527.7769, Chi2 = 5527.61
+Physical/phic=0 (D=871, Mc=28.3, tc=0.5295):     LogL = -6393.1535, Chi2 = 5258.36
+Optimal    (D=814, Mc=31.7, tc=0.5281, phic=2.0): LogL = -7144.4058, Chi2 = 6760.87
+
+--- Summary ---
+Physical mode is -130.7 nats more probable than noise-only
+Optimal (sampler) mode is -747.3 nats more probable than noise-only

@@ -1,0 +1,10 @@
+GW_ANALYTICS JAX GRADIENT VERIFICATION LOG (WITH PHIC)
+============================================================
+Forward wave max amplitude: 2.13848811e+00
+Computed gradients:
+  - dMc   = 4.50857992e+01 (Is NaN? False)
+  - dD    = -4.64130777e+00 (Is NaN? False)
+  - dtc   = 9.05006701e-12 (Is NaN? False)
+  - dphic = -6.19762985e-14 (Is NaN? False)
+
+SUCCESS: All gradients are fully valid, finite floats!

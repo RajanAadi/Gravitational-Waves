@@ -1,0 +1,25 @@
+=== SWEEP TEST 1: MASKING ONLY (HIGH FREQS STILL EVALUATED IN RIIPLEGW) ===
+F_UPPER = 2048 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER = 1000 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  500 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  300 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  150 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  100 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   75 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   50 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   40 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   30 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   25 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+
+=== SWEEP TEST 2: STRICT SLICING (HIGH FREQS EXCLUDED FROM RIPPLEGW) ===
+F_UPPER = 2048 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER = 1000 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  500 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  300 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  150 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =  100 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   75 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   50 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   40 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   30 Hz | grads: dMc=nan, dD=0.0, dtc=0.0
+F_UPPER =   25 Hz | grads: dMc=nan, dD=0.0, dtc=0.0

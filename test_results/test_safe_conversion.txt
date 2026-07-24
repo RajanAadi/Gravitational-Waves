@@ -1,0 +1,5 @@
+Testing safe mass conversion...
+m1, m2, chi1, chi2: [34.4609507 34.4609506  0.         0.       ]
+grad_intrinsic (d(m1,m2)/dMc): [1.14869835 1.14869835 0.         0.        ]
+Gradients with safe mass conversion [dMc, dD, dtc]:
+(Array(2.95986889e-23, dtype=float64, weak_type=True), Array(-8.44050591e-25, dtype=float64, weak_type=True), Array(1.53768558e-20, dtype=float64, weak_type=True))

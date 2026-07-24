@@ -1,0 +1,133 @@
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Initializing NUTS engine for GW150914...
+
+--- Final Parameter Estimates ---
+                     mean     sd eti94_lb  ... r_hat  mcse_mean  mcse_sd
+chirp_mass             50  5e-15       50  ...  2.61    2.9e-15  1.7e-15
+luminosity_distance  2000      0     2000  ...   NaN          0      NaN
+
+[2 rows x 9 columns]
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                      mean       sd  ... mcse_mean mcse_sd
+chirp_mass              17  4.10825  ...       2.9     NaN
+luminosity_distance  2e+03      320  ...       230       0
+
+[2 rows x 9 columns]
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                     mean         sd  ... mcse_mean  mcse_sd
+chirp_mass             12    1.15055  ...      0.81  4.6e-09
+luminosity_distance  1998    1.79158  ...       1.3  1.2e-08
+tc                   0.46  0.0136229  ...    0.0096      NaN
+
+[3 rows x 9 columns]
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                      mean     sd  ... mcse_mean  mcse_sd
+chirp_mass            25.6    0.3  ...      0.19    0.092
+luminosity_distance  2e+03  1e+02  ...        34       35
+tc                    0.49  0.027  ...     0.019  0.00064
+
+[3 rows x 9 columns]
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                      mean     sd eti94_lb eti94_ub  ess_bulk  ess_tail r_hat  \
+chirp_mass              26    0.7       25       27         2        17  1.83   
+luminosity_distance   1934     60     1800     2000       446       608  1.01   
+tc                   0.464  0.005     0.46     0.47         2        16  1.83   
+
+                    mcse_mean  mcse_sd  
+chirp_mass               0.49     0.12  
+luminosity_distance       2.9      3.5  
+tc                     0.0037  0.00069  
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                       mean      sd  ... mcse_mean mcse_sd
+chirp_mass             31.7     0.6  ...      0.37    0.19
+luminosity_distance     814      42  ...       1.3    0.96
+tc                   0.5281  0.0003  ...   0.00018  0.0001
+phic                      2     1.1  ...      0.79    0.15
+
+[4 rows x 9 columns]
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                        mean       sd eti94_lb eti94_ub  ess_bulk  ess_tail  \
+chirp_mass             32.22     0.38       32       33       733       965   
+luminosity_distance      822       40      750      900       996      1147   
+tc                   0.52786  0.00023     0.53     0.53       777      1047   
+phic                    0.81     0.31     0.24      1.4       771      1062   
+
+                    r_hat mcse_mean  mcse_sd  
+chirp_mass           1.00     0.014   0.0095  
+luminosity_distance  1.00       1.3      0.9  
+tc                   1.01   8.3e-06  5.8e-06  
+phic                 1.00     0.011   0.0075  
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                      mean     sd eti94_lb  ... r_hat  mcse_mean  mcse_sd
+chirp_mass              29    2.6       26  ...  1.83        1.8     0.12
+luminosity_distance    801     45      720  ...  1.03        2.8        2
+tc                   0.529  0.001     0.53  ...  1.83    0.00069  0.00012
+phic                     1    1.9     -1.3  ...  1.83        1.4     0.18
+
+[4 rows x 9 columns]
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                        mean       sd eti94_lb eti94_ub  ess_bulk  ess_tail  \
+chirp_mass             32.33     0.33       32       33       730       970   
+luminosity_distance      823       41      750      910       910      1104   
+tc                   0.52781  0.00021     0.53     0.53       894      1305   
+phic                    0.91     0.26     0.53      1.5       742       831   
+
+                    r_hat mcse_mean  mcse_sd  
+chirp_mass           1.01     0.012     0.01  
+luminosity_distance  1.00       1.4      1.1  
+tc                   1.00   7.1e-06  5.1e-06  
+phic                 1.00    0.0096   0.0074  
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+Initializing NUTS engine for GW150914 with template whitening...
+
+--- Final Parameter Estimates ---
+                       mean      sd eti94_lb  ... r_hat  mcse_mean  mcse_sd
+chirp_mass               34     1.4       32  ...  1.83       0.98     0.18
+luminosity_distance   9e+02   9e+01      760  ...  1.78         55       27
+tc                   0.5276  0.0003     0.53  ...  1.65    0.00018  9.3e-05
+phic                   -2.7     0.5     -3.1  ...  1.84       0.29     0.15
+
+[4 rows x 9 columns]

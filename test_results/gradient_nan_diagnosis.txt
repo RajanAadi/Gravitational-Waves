@@ -1,0 +1,21 @@
+============================================================
+ISSUE #1: Mc_eta_to_ms Gradient NaN Diagnosis
+============================================================
+
+--- Testing eta = 0.25 (EXACT equal-mass (buggy)) ---
+  m1, m2 = 34.46095064991105, 34.46095064991105
+  d(m1)/dMc = nan, d(m2)/dMc = nan
+  Has NaN: True
+
+--- Testing eta = 0.249999999999 (OFFSET equal-mass (workaround)) ---
+  m1, m2 = 34.46101957234737, 34.46088172764014
+  d(m1)/dMc = 1.1487006524139953, d(m2)/dMc = 1.1486960575855885
+  Has NaN: False
+  Full waveform gradients: dMc=0.00, dD=-0.00, dtc=-1.23e-58, dphic=1.95e-60
+  All finite: True
+
+============================================================
+ROOT CAUSE: Mc_eta_to_ms has a division by (1 - 4*eta)
+At eta=0.25, sqrt(1 - 4*eta) = sqrt(0) = 0 -> division by zero
+The fix: use eta = 0.25 - 1e-12 instead of eta = 0.25
+============================================================

@@ -1,0 +1,39 @@
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+
+--- Posterior Summary ---
+                        mean       sd eti89_lb  ... r_hat  mcse_mean  mcse_sd
+chirp_mass              32.2     0.38       32  ...  1.00      0.014     0.01
+luminosity_distance      821       42      760  ...  1.00        1.2     0.89
+tc                   0.52786  0.00023     0.53  ...  1.00      8e-06  5.9e-06
+phic                      -1      1.6     -2.7  ...  1.83        1.1     0.21
+
+[4 rows x 9 columns]
+
+--- BIC / AIC Computation ---
+Fetching GPS metadata for GW150914...
+Downloading and whitening strain data for H1...
+Computing noise PSD and ASD...
+
+--- Posterior Summary ---
+                      mean      sd eti89_lb  ... r_hat  mcse_mean  mcse_sd
+chirp_mass              32     0.6       31  ...  1.52       0.23     0.13
+luminosity_distance    817      42      750  ...  1.02        1.2     0.93
+tc                   0.528  0.0003     0.53  ...  1.39    0.00011  6.5e-05
+phic                   1.4       1     0.37  ...  1.53       0.49     0.26
+
+[4 rows x 9 columns]
+
+--- BIC / AIC Computation ---
+Number of data points (n): 4096
+Number of parameters (k):  4
+Log-likelihood at posterior mean: -6685.9
+AIC:  13379.9
+BIC:  13405.1
+chi2 (sum of squared residuals): 5843.93
+Reduced chi2 (chi2 / (n - k)): 1.4281
+
+========================================
+BIC/AIC diagnostics complete.
+Results saved to test_results/bic_aic_diagnosis.txt
