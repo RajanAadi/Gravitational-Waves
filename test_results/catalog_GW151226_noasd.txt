@@ -1,0 +1,31 @@
+Catalog Entry: GW151226_noasd
+============================================================
+Run at: 2026-07-24 06:06:49 UTC
+Samples: 2000 draws + 1500 tune x 2 chains
+Wall time: 33.0s
+Note: No frequency-domain whitening (ASD disabled)
+
+Prior Bounds:
+  chirp_mass          : [8, 30]
+  luminosity_distance : [100, 1200]
+  tc                  : [0.475, 0.525]
+  phic                : [-, -]
+
+Initvals:
+  chirp_mass          : 18.0
+  luminosity_distance : 600.0
+  tc                  : 0.5
+  phic                : -
+
+Posterior Summary (90% CI):
+Parameter                       Mean         SD   eti90_lb   eti90_ub    r_hat   ess_bulk
+-------------------------------------------------------------------------------------
+chirp_mass                    19.000      6.440      9.000     29.000    1.000 (OK)       4966
+luminosity_distance          642.000    319.000    140.000   1100.000    1.000 (OK)       4234
+tc                             0.500      0.015      0.480      0.520    1.000 (OK)       4289
+phic                          -0.040      1.820     -2.800      2.800    1.000 (OK)       4654
+
+Minimum ESS: 4234
+All r_hat < 1.05: PASS
+ESS/sec: 128.37
+============================================================

@@ -155,42 +155,67 @@ class GWNUTSSampler:
         self.idata = None
 
     # Step 6: Rebuilt model using the JAX-differentiable waveform Op.
-    def build_and_sample_model(self, draws: int = 3000, tune: int = 2000, chains: int = 2):
+    def build_and_sample_model(
+        self,
+        draws: int = 3000,
+        tune: int = 2000,
+        chains: int = 2,
+        prior_bounds: dict = None,
+        initvals: dict = None,
+    ):
         """
         Construct the PyMC model with an IMRPhenomD waveform template
         and sample using NumPyro's NUTS (JAX-compiled, gradient-aware).
+
+        Parameters
+        ----------
+        draws : int
+            Number of posterior draws per chain.
+        tune : int
+            Number of tuning (warmup) steps per chain.
+        chains : int
+            Number of independent MCMC chains.
+        prior_bounds : dict, optional
+            Custom prior bounds keyed by parameter name.
+            Each value is a (lower, upper) tuple.
+            Defaults to GW150914-appropriate bounds.
+        initvals : dict, optional
+            Custom initial values keyed by parameter name.
+            Defaults to GW150914-appropriate initvals.
 
         Returns
         -------
         idata : ArviZ InferenceData object with posterior samples.
         """
+        if prior_bounds is None:
+            prior_bounds = {}
+
+        if initvals is None:
+            initvals = {}
+
         # Build the static PyTensor Op once (frequency grid computed here)
         waveform_op = _make_pytensor_op(self.time_array, self.scale_factor, self.asd)
 
         with pm.Model() as model:
-            # ----------------------------------------------------------
-            # Priors (Targeted, physical bounds)
-            # ----------------------------------------------------------
-            # Chirp mass: GW150914 detector-frame ~31 M☉
-            chirp_mass = pm.Uniform("chirp_mass", lower=28.0, upper=35.0)
+            # Chirp mass
+            lb, ub = prior_bounds.get("chirp_mass", (28.0, 35.0))
+            chirp_mass = pm.Uniform("chirp_mass", lower=lb, upper=ub)
 
-            # Luminosity distance: GW150914 true effective H1 distance ~870 Mpc
-            lum_dist = pm.Uniform("luminosity_distance", lower=600.0, upper=1200.0)
+            # Luminosity distance
+            lb, ub = prior_bounds.get("luminosity_distance", (600.0, 1200.0))
+            lum_dist = pm.Uniform("luminosity_distance", lower=lb, upper=ub)
 
-            # Time of coalescence: narrow window around the merger peak (~0.528s).
-            tc = pm.Uniform("tc", lower=0.525, upper=0.532)
+            # Time of coalescence
+            lb, ub = prior_bounds.get("tc", (0.525, 0.532))
+            tc = pm.Uniform("tc", lower=lb, upper=ub)
 
-            # Phase of coalescence: full periodic range (-π, π).
+            # Phase of coalescence: full periodic range (-π, π)
             phic = pm.Uniform("phic", lower=-np.pi, upper=np.pi)
 
-            # ----------------------------------------------------------
-            # Step 6: JAX-differentiable relativistic waveform template
-            # ----------------------------------------------------------
+            # JAX-differentiable relativistic waveform template
             scaled_template = waveform_op(chirp_mass, lum_dist, tc, phic)
 
-            # ----------------------------------------------------------
             # Likelihood: whitened strain ~ N(template, sigma=1)
-            # ----------------------------------------------------------
             pm.Normal(
                 "likelihood",
                 mu=scaled_template,
@@ -198,17 +223,14 @@ class GWNUTSSampler:
                 observed=self.observed_strain,
             )
 
-            # ----------------------------------------------------------
-            # Step 6: NumPyro NUTS — compiles the full model to JAX/XLA.
-            # We initialize the chains inside the physical well (initvals)
-            # to guide NUTS directly to the correct parameter mode.
-            # ----------------------------------------------------------
-            initvals = {
+            # Default initvals for each parameter
+            default_initvals = {
                 "chirp_mass": 31.5,
                 "luminosity_distance": 900.0,
                 "tc": 0.5285,
                 "phic": 0.0,
             }
+            default_initvals.update(initvals)
 
             self.idata = pm_jax.sample_numpyro_nuts(
                 draws=draws,
@@ -216,7 +238,7 @@ class GWNUTSSampler:
                 chains=chains,
                 target_accept=0.95,
                 progressbar=True,
-                initvals=initvals,
+                initvals=default_initvals,
             )
 
         return self.idata

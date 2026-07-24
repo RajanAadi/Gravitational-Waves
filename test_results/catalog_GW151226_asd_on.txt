@@ -1,0 +1,31 @@
+Catalog Entry: GW151226_asd_on
+============================================================
+Run at: 2026-07-24 06:06:15 UTC
+Samples: 2000 draws + 1500 tune x 2 chains
+Wall time: 231.2s
+Note: ASD-based frequency-domain whitening enabled
+
+Prior Bounds:
+  chirp_mass          : [8, 30]
+  luminosity_distance : [100, 1200]
+  tc                  : [0.475, 0.525]
+  phic                : [-, -]
+
+Initvals:
+  chirp_mass          : 18.0
+  luminosity_distance : 600.0
+  tc                  : 0.5
+  phic                : -
+
+Posterior Summary (90% CI):
+Parameter                       Mean         SD   eti90_lb   eti90_ub    r_hat   ess_bulk
+-------------------------------------------------------------------------------------
+chirp_mass                    16.000      2.000     13.000     18.000    1.850 (HIGH)          2
+luminosity_distance         1173.000     30.000   1100.000   1200.000    1.050 (HIGH)         43
+tc                             0.505      0.001      0.500      0.510    1.160 (HIGH)         93
+phic                          -0.700      1.050     -2.100      1.400    1.020 (OK)        471
+
+Minimum ESS: 2
+All r_hat < 1.05: FAIL
+ESS/sec: 0.01
+============================================================
